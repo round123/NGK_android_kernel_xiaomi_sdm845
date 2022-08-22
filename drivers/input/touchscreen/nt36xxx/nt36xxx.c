@@ -1064,6 +1064,7 @@ return:
 *******************************************************/
 static irqreturn_t nvt_ts_work_func(int irq, void *data)
 {
+    struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
 	int32_t ret = -1;
 	uint8_t point_data[POINT_DATA_LEN + 1] = {0};
 	uint32_t position = 0;
@@ -1083,8 +1084,6 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 		pm_wakeup_event(&ts->input_dev->dev, 5000);
 	}
 #endif
-
-	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
 
 	sched_setscheduler(current, SCHED_FIFO, &param);
 
@@ -1117,7 +1116,7 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 			continue;
 
 		if (likely(((point_data[position] & 0x07) == 0x01) || ((point_data[position] & 0x07) == 0x02))) {	//finger down (enter & moving)
-#if NVT_TOUCH_ESD_PROTECT
+#ifdef NVT_TOUCH_ESD_PROTECT
 			/* update interrupt timer */
 			irq_timer = jiffies;
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
